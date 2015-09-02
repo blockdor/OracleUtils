@@ -14,11 +14,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc5</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>com.blocktopus</groupId>
 			<artifactId>CommonUtils</artifactId>
 			<version>0.0.4-SNAPSHOT</version>
