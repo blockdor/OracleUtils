@@ -36,19 +36,17 @@ import org.junit.experimental.categories.Category;
 
 import static com.blocktopus.common.CollectionUtils.*;
 import com.blocktopus.oracle.OracleCodeCaller;
-import com.blocktopus.oracle.OracleCodeCaller.ResponseType;
 import com.blocktopus.oracle.types.PrimitiveListOutputParameter;
 import com.blocktopus.oracle.types.ObjectListLazy;
 import com.blocktopus.oracle.types.ObjectList;
 import com.blocktopus.oracle.types.PrimitiveOutputParameter;
 import com.blocktopus.oracle.types.PrimitiveList;
-import com.blocktopus.oracle.types.Response;
 import com.blocktopus.oracle.types.ObjectListOutputParameter;
 import com.blocktopus.oracle.types.ObjectOutputParameter;
 
 //@Category(DBTest.class)
 public class TestOracleCodeCaller {
-
+/*
 	OracleCodeCaller testClass = null;
 
 	@Before
@@ -237,7 +235,7 @@ public class TestOracleCodeCaller {
 		
 		List rfbearers = (List) rfb.getParameter();
 		IDPair currentAndPlannedRfbearers = (IDPair)rfbearers.get(0);
-	}*/
+	}
 	
 	@Test
 	public void testOutputArray() throws Exception {

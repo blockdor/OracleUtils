@@ -39,13 +39,11 @@ import org.junit.experimental.categories.Category;
 import static com.blocktopus.common.CollectionUtils.*;
 
 import com.blocktopus.oracle.OracleCodeCaller;
-import com.blocktopus.oracle.OracleCodeCaller.ResponseType;
 import com.blocktopus.oracle.types.PrimitiveListOutputParameter;
 import com.blocktopus.oracle.types.ObjectListLazy;
 import com.blocktopus.oracle.types.ObjectList;
 import com.blocktopus.oracle.types.PrimitiveOutputParameter;
 import com.blocktopus.oracle.types.PrimitiveList;
-import com.blocktopus.oracle.types.Response;
 import com.blocktopus.oracle.types.ObjectListOutputParameter;
 import com.blocktopus.oracle.types.ObjectOutputParameter;
 

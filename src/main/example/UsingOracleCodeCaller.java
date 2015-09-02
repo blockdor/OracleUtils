@@ -12,7 +12,6 @@ import com.blocktopus.oracle.types.ObjectListLazy;
 import com.blocktopus.oracle.types.ObjectList;
 import com.blocktopus.oracle.types.PrimitiveOutputParameter;
 import com.blocktopus.oracle.types.PrimitiveList;
-import com.blocktopus.oracle.types.Response;
 
 
 public class UsingOracleCodeCaller {
@@ -121,96 +120,6 @@ public class UsingOracleCodeCaller {
                       t_historyobject is table of o_historyobject;
 	 */	
 		
-	/**
-	 * this method uses {@link ObjectList} to model t_historyobject and {@Link PrimitiveList} to model t_number. 
-	 * <P> As such a sqldata representation on o_historyobject is required. 
-	 * @throws Exception
-	 */
-	public void callCreateHistory() throws Exception{
 
-		
-		Connection c = null;
-		//get connection somehow
-		OracleCodeCaller occ = new OracleCodeCaller();
-		occ.setConnection(c);
-		
-		PrimitiveOutputParameter<BigDecimal> o_historyID = new PrimitiveOutputParameter<BigDecimal>(BigDecimal.class);
-		PrimitiveList<Long> workorderIds = new PrimitiveList<Long>("CUSTOM.T_NUMBER");
-		ObjectList<HistoryObject> historyObjects = new ObjectList<HistoryObject>("CUSTOM.T_HISTORYOBJECT");
-		
-		workorderIds.add(1l);
-		workorderIds.add(2l);
-		
-		HistoryObject ho = new HistoryObject();
-		ho.setHistoryObject2DimensionObject(BigDecimal.valueOf(1));
-		ho.setHistoryObject2Object(BigDecimal.valueOf(1234));
-		ho.setHistoryObject2Relation(BigDecimal.valueOf(1234));
-		ho.setObjectname("Node1");
-		ho.setEvent(BigDecimal.valueOf(1));
-		ho.setDescription("SomeDescription");
-		historyObjects.add(ho);
-		
-		Response r = occ.callStoredProcedure("CUSTOM.PKGHISTORY.CREATEHISTORY", OracleCodeCaller.ResponseType.ErrorCodeAndErrorText,
-				o_historyID,
-				workorderIds,
-				historyObjects
-				);
-		r.getErrorcode();
-		r.getErrortext();
-		BigDecimal id = (BigDecimal)o_historyID.getParameter();
-		try{
-			c.close();
-		} catch (SQLException e){
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * this method uses {@link ObjectListLazy} to model t_historyobject and {@link PrimitiveList} to model t_number. 
-	 * <P> As such <b>no</b> sqldata representation on o_historyobject is required. 
-	 * @throws Exception
-	 */
-	public void callCreateHistoryLazy() throws Exception{
-
-		
-		Connection c = null;
-		//get connection somehow
-		OracleCodeCaller occ = new OracleCodeCaller();
-		occ.setConnection(c);
-		
-		PrimitiveOutputParameter<Long> o_historyID = new PrimitiveOutputParameter<Long>(Long.class);
-		PrimitiveList<Long> workorderIds = new PrimitiveList<Long>("CUSTOM.T_NUMBER");
-		ObjectListLazy historyObjects = new ObjectListLazy("CUSTOM.T_HISTORYOBJECT","CUSTOM.O_HISTORYOBJECT");
-		
-		workorderIds.add(1l);
-		workorderIds.add(2l);
-		
-		// lazy so we use a map with names... obviously not as safe as using an sqldata implementation
-		// as there is no compile time checking of types etc
-		Map<String,Object> historyObject = new HashMap<String,Object>();
-		historyObject.put("HistoryObject2DimensionObject", BigDecimal.valueOf(1));
-		historyObject.put("HistoryObject2Object",BigDecimal.valueOf(1234));
-		historyObject.put("HistoryObject2Relation", BigDecimal.valueOf(1234));
-		historyObject.put("ObjectName", "Node1");
-		historyObject.put("Description","SomeDescription");
-
-		historyObjects.add(historyObject);
-		
-		Response r = occ.callStoredProcedure("CUSTOM.PKGHISTORY.CREATEHISTORY", OracleCodeCaller.ResponseType.ErrorCodeAndErrorText,
-				o_historyID,
-				workorderIds,
-				historyObjects
-				);
-		r.getErrorcode();
-		r.getErrortext();
-		Long id = o_historyID.getParameter();
-		try{
-			c.close();
-		} catch (SQLException e){
-			e.printStackTrace();
-		}
-	}
-
-	
 	
 }

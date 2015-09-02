@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.blocktopus.oracle.OracleCodeCaller;
 import com.blocktopus.oracle.types.PrimitiveListOutputParameter;
-import com.blocktopus.oracle.types.Response;
 import com.blocktopus.oracle.types.ObjectListOutputParameter;
 
 
@@ -79,12 +78,9 @@ public class ComplicatedOutputParams {
           String plannedReturnSegment = null;
           Long segmentationType = null;
 
-          Response r = occ.callStoredProcedure("HSI.PKGSEGMENTATION.GETOBJECTSFORSEGMENTATION", OracleCodeCaller.ResponseType.ErrorCodeAndErrorText,
-                        sa,addr,rfb,currentReturnSegment,plannedReturnSegment,segmentationType);
+          occ.callStoredProcedure("HSI.PKGSEGMENTATION.GETOBJECTSFORSEGMENTATION", sa,addr,rfb,currentReturnSegment,plannedReturnSegment,segmentationType);
           
           //how to get the params out!
-          r.getErrorcode();
-          r.getErrortext();
           List<Long> serviceAreas = sa.getParameter();
           Long serviceArea = serviceAreas.get(0);
           List<Long> Addresses = addr.getParameter();

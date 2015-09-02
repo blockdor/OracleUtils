@@ -1,6 +1,5 @@
 package com.blocktopus.oracle;
 
-import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLData;
@@ -17,7 +16,6 @@ import com.blocktopus.oracle.types.OutputParameter;
 import com.blocktopus.oracle.types.Clob;
 import com.blocktopus.oracle.types.OracleList;
 import com.blocktopus.oracle.types.PrimitiveOutputParameter;
-import com.blocktopus.oracle.types.Response;
 import com.blocktopus.oracle.types.SQLObjectConverter;
 
 import static com.blocktopus.common.CollectionUtils.*;
@@ -32,15 +30,6 @@ import static com.blocktopus.oracle.Common.*;
  */
 public class OracleCodeCaller {
 	
-	public enum ResponseType{
-		ErrorCodeAndErrorText (2),
-		ErrorCodeErrorTextAndReturnCode(3),
-		NoResponse(0);
-		public int numOutputParams;
-		private ResponseType(int numOutputParams){
-			this.numOutputParams = numOutputParams;
-		}
-	}
 	private DataSource dataSource;
 	private Connection connection;
 	private boolean autoCommit = true;
@@ -125,44 +114,6 @@ public class OracleCodeCaller {
 		return plsql.toString();
 	}
 	
-	public Response callCramerFunction(String functionName,OutputParameter functionOutput, ResponseType rt, Object... parameters){
-		List<Object> params = newList();
-		switch(rt){
-		case ErrorCodeAndErrorText:
-			params.add(new PrimitiveOutputParameter<BigDecimal>(BigDecimal.class));
-			params.add(new PrimitiveOutputParameter<String>(String.class));
-			break;
-		case ErrorCodeErrorTextAndReturnCode:
-			params.add(new PrimitiveOutputParameter<BigDecimal>(BigDecimal.class));
-			params.add(new PrimitiveOutputParameter<String>(String.class));
-			params.add(new PrimitiveOutputParameter<String>(String.class));
-			break;
-		case NoResponse:
-		default:
-			break;
-		}
-		params.addAll(Arrays.asList(parameters));
-		callFunction(functionName,functionOutput,params);
-		Response r = new Response();
-		switch(rt){
-		case ErrorCodeErrorTextAndReturnCode:
-			r.setReturnCode(((PrimitiveOutputParameter<String>)params.get(3)).getParameter());
-			//no break here as we reuse the errorcode and errortext code below.
-		case ErrorCodeAndErrorText:
-			params.get(0);
-			BigDecimal errorCode = (BigDecimal)((PrimitiveOutputParameter<BigDecimal>)params.get(1)).getParameter();
-			r.setErrorcode(errorCode==null?null:errorCode.longValue());
-			r.setErrortext((String)((PrimitiveOutputParameter<String>)params.get(2)).getParameter());
-			break;
-		case NoResponse:
-			break;
-		}
-		return r;
-	}
-	@Deprecated
-	public Response callOracleFunction(String functionName,OutputParameter functionOutput, ResponseType rt, Object... parameters){
-		return callCramerFunction(functionName, functionOutput, rt, parameters);
-	}
 	public List<OutputParameter> callFunction(String functionName,OutputParameter functionOutput,Object... parameters){
 
 		List<Object> params = newList();
@@ -183,41 +134,6 @@ public class OracleCodeCaller {
 		
 	}
 
-	public Response callStoredProcedure(String procedureName, ResponseType rt, Object... parameters){
-		Response r = new Response();
-		List<Object> params = newList();
-		switch(rt){
-		case ErrorCodeAndErrorText:
-			params.add(new PrimitiveOutputParameter<BigDecimal>(BigDecimal.class));
-			params.add(new PrimitiveOutputParameter<String>(String.class));
-			break;
-		case ErrorCodeErrorTextAndReturnCode:
-			params.add(new PrimitiveOutputParameter<BigDecimal>(BigDecimal.class));
-			params.add(new PrimitiveOutputParameter<String>(String.class));
-			params.add(new PrimitiveOutputParameter<String>(String.class));
-			break;
-		case NoResponse:
-		default:
-			break;
-		}
-		params.addAll(Arrays.asList(parameters));
-		callStoredProcedure(procedureName,params.toArray());
-		switch(rt){
-		case ErrorCodeErrorTextAndReturnCode:
-			r.setReturnCode(((PrimitiveOutputParameter<String>)params.get(2)).getParameter());
-			//no break here as we reuse the errorcode and errortext code below.
-		case ErrorCodeAndErrorText:
-			BigDecimal errorCode = (BigDecimal)((PrimitiveOutputParameter<BigDecimal>)params.get(0)).getParameter();
-			r.setErrorcode(errorCode==null?null:errorCode.longValue());
-			r.setErrortext((String)((PrimitiveOutputParameter<String>)params.get(1)).getParameter());
-			break;
-		case NoResponse:
-		default:
-			break;
-		}
-		return r;
-		
-	}
 	public List<OutputParameter> callStoredProcedure(String procedureName, Object... parameters){
 
 		String plsql = buildProcedureString(procedureName, parameters);
