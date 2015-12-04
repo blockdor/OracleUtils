@@ -10,11 +10,16 @@ import com.blocktopus.oracle.types.PrimitiveOutputParameter;
 public class OracleParallelExecute {
 
 	public static class ParallelTask {
+
+		private String task;
+		private Chunker chunk;
+		private int threads;
 		public ParallelTask() {}
-		public ParallelTask(String task, Chunker chunk) {
+		public ParallelTask(String task, Chunker chunk, int threads) {
 			super();
 			this.task = task;
 			this.chunk = chunk;
+			this.threads = threads;
 		}
 
 		public static interface Chunker {
@@ -67,8 +72,6 @@ public class OracleParallelExecute {
 			}
 		}
 
-		private String task;
-		private Chunker chunk;
 
 		public String getTask() {
 			// change to the oracle convention.
@@ -95,18 +98,24 @@ public class OracleParallelExecute {
 		public String getChunkSQL() {
 			return chunk.getChunkSQL();
 		}
+		public int getThreads() {
+			return threads;
+		}
+		public void setThreads(int threads) {
+			this.threads = threads;
+		}
 	}
 
-	private OracleCodeCaller oracleCodeCaller;
+	private OracleExecutor oracleCodeCaller;
 
-	public OracleCodeCaller getOracleCodeCaller() {
+	public OracleExecutor getOracleCodeCaller() {
 		if (oracleCodeCaller == null) {
 			throw new RuntimeException("Must give configured OracleCodeCaller before use");
 		}
 		return oracleCodeCaller;
 	}
 
-	public void setOracleCodeCaller(OracleCodeCaller oracleCodeCaller) {
+	public void setOracleCodeCaller(OracleExecutor oracleCodeCaller) {
 		this.oracleCodeCaller = oracleCodeCaller;
 	}
 
@@ -131,7 +140,7 @@ public class OracleParallelExecute {
 				null,
 				null,
 				new LiteralString("TRUE"),
-				10);
+				pt.getThreads());
 
 	}
 

@@ -5,94 +5,62 @@ import java.sql.SQLInput;
 import java.sql.SQLOutput;
 import java.util.List;
 
-import com.blocktopus.oracle.OracleCodeCaller;
+import com.blocktopus.oracle.OracleExecutor;
+import com.blocktopus.oracle.ParameterFactory;
+import com.blocktopus.oracle.types.ObjectOutputParameter;
 import com.blocktopus.oracle.types.PrimitiveListOutputParameter;
 import com.blocktopus.oracle.types.ObjectListOutputParameter;
 
-
 public class ComplicatedOutputParams {
 
-    public class IDPair implements java.sql.SQLData{
-          
-          private BigDecimal id1;
-          private BigDecimal id2;
+	public void call() throws Exception {
 
-          public BigDecimal getId1() {
-                 return id1;
-          }
+		Connection c = null;
+		// get connection somehow
+		OracleExecutor occ = new OracleExecutor();
+		occ.setConnection(c);
 
-          public void setId1(BigDecimal id1) {
-                 this.id1 = id1;
-          }
+		// for nested tables of primitives we use PrimitiveListOutputParameter
+		// and give
+		// the typename
+		PrimitiveListOutputParameter<Long> out1 = ParameterFactory
+				.getListOfLongOutputParameter("BLOCK.T_NUMBER");
+		// note we can omit the schema if we have synonyms etc in place or are
+		// logged into the schema we want!
+		PrimitiveListOutputParameter<Double> out2 = ParameterFactory
+				.getListOfDoubleOutputParameter("T_NUMBER");
 
-          public BigDecimal getId2() {
-                 return id2;
-          }
+		// for object output param we need to know
+		// the typename of the object
+		// the sqldata class that maps to the object
+		ObjectOutputParameter<OObject> out3 = ParameterFactory
+				.getObjectOutputParameter("BLOCK.O_OBJECT", OObject.class);
 
-          public void setId2(BigDecimal id2) {
-                 this.id2 = id2;
-          }
+		// For nested table of object we also need the table sql typename
+		ObjectListOutputParameter<OObject> out4 = ParameterFactory
+				.getObjectListOutputParameter("BLOCK.T_OBJECT",
+						"BLOCK.O_OBJECT", OObject.class);
 
-          
-          public String getSQLTypeName() throws SQLException {
-                 return "CRAMER.O_ID_PAIR";
-          }
+		Long in1 = 10l;
+		String in2 = "Something";
+		occ.callStoredProcedure("BLOCK.PKGEXAMPLE.COMPLICATEDOUTPUTS", out1,
+				out2, out3, out4, in1, in2);
 
-          
-          public void readSQL(SQLInput stream, String typeName)
-                        throws SQLException {
-                 id1 = stream.readBigDecimal();
-                 id2 = stream.readBigDecimal();
-          }
+		// how to get the params out!
+		List<Long> longOutputs = out1.getParameter();
+		Long longOutput = longOutputs.get(0);
+		List<Double> doubleOutputs = out2.getParameter();
+		Double doubleOutput = doubleOutputs.get(0);
 
-          
-          public void writeSQL(SQLOutput stream) throws SQLException {
-                 // TODO Auto-generated method stub
-                 stream.writeBigDecimal(id1);
-                 stream.writeBigDecimal(id2);
-          }
-          
-    }
-    
-    public void call() throws Exception{
-
-    	Connection c = null;
-    	//get connection somehow
-        OracleCodeCaller occ = new OracleCodeCaller();
-        occ.setConnection(c);
-        
-        //for nested tables of primitives we use ArrayOutputParameter and give the typename
-          PrimitiveListOutputParameter<Long> addr = new PrimitiveListOutputParameter<Long>("HSI.T_NUMBER",Long.class);
-          //note we can omit the schema if we have synonyms etc in place or are logged into the schema we want!
-          PrimitiveListOutputParameter<Long> sa = new PrimitiveListOutputParameter<Long>("T_NUMBER",Long.class);
-          
-          //set up the object output param, we need to know:
-          //the typename of the nested table
-          //the typename of the object in the table
-          //the sqldata class that maps to the object
-          
-          ObjectListOutputParameter<IDPair> rfb = new ObjectListOutputParameter<IDPair>("CRAMER.T_ID_PAIRS","CRAMER.O_ID_PAIR",IDPair.class);
-          
-          //input params are just normal objects
-          String currentReturnSegment = null;
-          String plannedReturnSegment = null;
-          Long segmentationType = null;
-
-          occ.callStoredProcedure("HSI.PKGSEGMENTATION.GETOBJECTSFORSEGMENTATION", sa,addr,rfb,currentReturnSegment,plannedReturnSegment,segmentationType);
-          
-          //how to get the params out!
-          List<Long> serviceAreas = sa.getParameter();
-          Long serviceArea = serviceAreas.get(0);
-          List<Long> Addresses = addr.getParameter();
-          Long address = Addresses.get(0);
-          
-          List<IDPair> rfbearers = rfb.getParameter();
-          IDPair currentAndPlannedRfbearers = rfbearers.get(0);
-  		try{
+		OObject objectOutput = out3.getParameter();
+		
+		List<OObject> objects = out4.getParameter();
+		OObject objectOutput2 = objects.get(0);
+		try {
 			c.close();
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
 }

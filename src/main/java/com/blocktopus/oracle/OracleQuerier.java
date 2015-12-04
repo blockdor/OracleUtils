@@ -85,7 +85,8 @@ public class OracleQuerier {
 		Connection c=ps.getConnection();
 		int numLiteralStrings = 0; 
 		for(int i=1;i<parameters.length+1;i++){
-			Object o = parameters[i-1];
+			try{
+				Object o = parameters[i-1];
 				if(o instanceof OracleList){
 					OracleList<? extends Object> l = (OracleList)o;
 					ps.setArray(i-numLiteralStrings,l.getArray(Common.unwrap(c)));
@@ -111,7 +112,11 @@ public class OracleQuerier {
 				if(o instanceof SQLObjectConverter){
 					c.getTypeMap().put(((SQLObjectConverter<?>) o).getObjectSqlTypeName(), ((SQLObjectConverter<?>) o).getSqlDataClass());
 				}
-				
+			}catch(SQLException sqle){
+				SQLException e = new SQLException("Parameter "+i+":"+parameters[i-1]);
+				e.initCause(sqle);
+				throw e;
+			}
 		}
 	}
 	public Object queryForSingleValue(String query, Object... params){
@@ -130,6 +135,7 @@ public class OracleQuerier {
 	}
 	
 	public BigInteger queryForBigInteger(String query, Object... params){
+		
 		BigDecimal result = (BigDecimal)queryForSingleValue(query, params);
 		if(result==null){
 			return null;
@@ -181,17 +187,14 @@ public class OracleQuerier {
 	}
 	
 	public List<Map<String,Object>> queryForMapList(String query, Object... params){
-
 		Connection c = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try{
 			c=getConnection();
-			ps = c.prepareStatement(query);
-			setParams(ps,params);
-
-			
 			try{
+				ps = c.prepareStatement(query);
+				setParams(ps,params);
 				rs = ps.executeQuery();
 			} catch (SQLException e){
 				throw new DBCallException("Failed To Execute Query",query,params,e);
