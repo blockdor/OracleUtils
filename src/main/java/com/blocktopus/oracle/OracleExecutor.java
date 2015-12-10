@@ -1,9 +1,11 @@
 package com.blocktopus.oracle;
 
+import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,6 +17,7 @@ import com.blocktopus.oracle.types.NamedOutputParameter;
 import com.blocktopus.oracle.types.OutputParameter;
 import com.blocktopus.oracle.types.Clob;
 import com.blocktopus.oracle.types.OracleList;
+import com.blocktopus.oracle.types.PrimitiveList;
 import com.blocktopus.oracle.types.PrimitiveOutputParameter;
 import com.blocktopus.oracle.types.SQLObjectConverter;
 
@@ -28,7 +31,7 @@ import static com.blocktopus.oracle.Common.*;
  * @author Block
  *
  */
-public class OracleCodeCaller {
+public class OracleExecutor {
 	
 	private DataSource dataSource;
 	private Connection connection;
@@ -114,6 +117,69 @@ public class OracleCodeCaller {
 		return plsql.toString();
 	}
 	
+	public void executeDML(String dml, Object... params) {
+		runOracleCode(dml,params);
+	}
+	
+	
+	/**
+	 * executes the dml statement in bulk using lists of values for each column,
+	 * e.g. if the dml has 2 binding parameters then 2 lists of type String or Number must be passed in with the DML.
+	 * These lists must be of the same size.
+	 * Currently if lists were different sizes the first lists length would be used and only cause error if the other lists were shorter.
+	 *
+	 * @param dml - the dml statement to execute
+	 * @param parametersToBind
+	 * @throws SQLException
+	 *
+	 *
+	 */
+	@SuppressWarnings("rawtypes")
+	public void executeForAll(String dml, PrimitiveList<?>... parametersToBind){
+		if(parametersToBind==null)
+			throw new NullPointerException("parametersToBind cannot be null");
+		if(parametersToBind.length==0)
+			throw new IllegalArgumentException("parametersToBind cannot have 0 length");
+		if(dml==null)
+			throw new NullPointerException("dml cannot be null");
+		if(dml.equals("")){
+			throw new RuntimeException("dml cannot be empty");
+		}
+		int length=-1;
+		for (List c : parametersToBind) {
+			
+			if (c.isEmpty()) {
+				throw new RuntimeException("All lists must contain values");
+			} 
+			if(length!=-1){
+				if(length!=c.size()){
+					throw new RuntimeException("All lists must be of same size");
+				}
+			}
+			length = c.size();
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("declare ");
+		int v = 1;		
+		for (PrimitiveList c : parametersToBind) {
+			sb.append("v" + v++);
+			sb.append(" "+c.getSqlTypeName()+" := ?; ");
+		}
+		sb.append("begin forall i in 1..v1.count ");
+		sb.append(dml);
+		sb.append("; end;");
+		
+		runOracleCode(sb.toString(), (Object[])parametersToBind);
+
+	}
+	
+	/**
+	 * Calls a Function in the database and returns the return parameter as index 0 and any other output parameters from 1 onwards
+	 * @param functionName
+	 * @param functionOutput
+	 * @param parameters
+	 * @return 
+	 */
 	public List<OutputParameter> callFunction(String functionName,OutputParameter functionOutput,Object... parameters){
 
 		List<Object> params = newList();
@@ -134,6 +200,12 @@ public class OracleCodeCaller {
 		
 	}
 
+	/**
+	 * Calls a Stored Procedure and retuns any output parameters
+	 * @param procedureName
+	 * @param parameters
+	 * @return
+	 */
 	public List<OutputParameter> callStoredProcedure(String procedureName, Object... parameters){
 
 		String plsql = buildProcedureString(procedureName, parameters);
@@ -149,7 +221,7 @@ public class OracleCodeCaller {
 	}
 	
 	/**
-	 * 
+	 * Executes the dml or plsql with the given parameters
 	 * @param plsql
 	 * @param parameters
 	 */
@@ -204,7 +276,7 @@ public class OracleCodeCaller {
 			}
 
 		} catch (SQLException sqle){
-			throw new DBCallException("Error executing Code", plsql,parameters,sqle);
+			throw new DBCallException("Error executing", plsql,parameters,sqle);
 		} finally {
 			close(cs);
 			closeConnection(c);

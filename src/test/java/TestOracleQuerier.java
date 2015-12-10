@@ -16,6 +16,7 @@ import java.util.Map;
 
 
 
+
 import oracle.jdbc.OracleConnection;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
@@ -38,7 +39,7 @@ import org.junit.experimental.categories.Category;
 
 import static com.blocktopus.common.CollectionUtils.*;
 
-import com.blocktopus.oracle.OracleCodeCaller;
+import com.blocktopus.oracle.OracleExecutor;
 import com.blocktopus.oracle.types.PrimitiveListOutputParameter;
 import com.blocktopus.oracle.types.ObjectListLazy;
 import com.blocktopus.oracle.types.ObjectList;
@@ -54,7 +55,7 @@ public class TestOracleQuerier {
 	@Before
 	public void setup() {
 		testClass = new OracleQuerier();
-		testClass.setDataSource(new SimpleOracleDataSource("cramer", "cramer", "172.19.251.224.","ltermd05"));
+		testClass.setDataSource(DataSourceFactory.getDataSource());
 	}
 
 	@After
@@ -63,7 +64,7 @@ public class TestOracleQuerier {
 
 	@Test
 	public void testStar() throws Exception {
-		List<Map<String,Object>> result = testClass.queryForMapList("select * from dye_node_all where rownum=1");
+		List<Map<String,Object>> result = testClass.queryForMapList("select * from location where rownum=1");
 		System.out.println(result);
 	}
 }

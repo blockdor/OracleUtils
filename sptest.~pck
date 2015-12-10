@@ -36,16 +36,16 @@ CREATE OR REPLACE PACKAGE sptest IS
                           i_string    IN STRING);
   PROCEDURE testoutputobject(o_errorcode OUT NUMBER,
                              o_errortext OUT VARCHAR2,
-                             o_objectout OUT o_object);
+                             o_pporttypea OUT o_object);
   PROCEDURE testoutputArray(o_errorcode   OUT NUMBER,
                             o_errortext   OUT VARCHAR2,
                             o_numberarray OUT custom.t_number);
   PROCEDURE testoutputArrayDate(o_errorcode   OUT NUMBER,
                             o_errortext   OUT VARCHAR2,
-                            o_array OUT t_date);
+                            o_array OUT custom.t_date);
   PROCEDURE testoutputObjectArray(o_errorcode   OUT NUMBER,
                                   o_errortext   OUT VARCHAR2,
-                                  o_objectarray OUT t_object);
+                                  o_objectarray OUT o_object);
 END sptest;
 /
 CREATE OR REPLACE PACKAGE BODY sptest IS
@@ -72,10 +72,10 @@ CREATE OR REPLACE PACKAGE BODY sptest IS
   
   PROCEDURE testObjects(o_errorcode OUT NUMBER,
                         o_errortext OUT VARCHAR2,
-                        i_object  IN o_object) AS
+                        i_pportype  IN o_pporttype) AS
   BEGIN
     o_errorcode := 0;
-    o_errortext := i_object.oname;
+    o_errortext := i_pportype.portname;
   END;
 
   PROCEDURE testStringArray(o_errorcode   OUT NUMBER,
@@ -103,11 +103,11 @@ CREATE OR REPLACE PACKAGE BODY sptest IS
 
   PROCEDURE testObjectArray(o_errorcode   OUT NUMBER,
                             o_errortext   OUT VARCHAR2,
-                            i_objectArray IN t_object) AS
+                            i_objectArray IN t_pporttype) AS
   BEGIN
     o_errorcode := i_objectarray.count;
     IF (i_objectarray.count > 0) THEN
-      o_errortext := i_objectarray(1).oname;
+      o_errortext := i_objectarray(1).portname;
     ELSE
       o_errortext := 'empty array';
     END IF;
@@ -128,13 +128,12 @@ CREATE OR REPLACE PACKAGE BODY sptest IS
 
   PROCEDURE testoutputobject(o_errorcode OUT NUMBER,
                              o_errortext OUT VARCHAR2,
-                             o_objectout OUT o_object)
+                             o_pporttypea OUT o_pporttype)
   
    AS
   BEGIN
     o_errorcode := 0;
-    o_errortext := 'woop'
-    o_objectout := o_object('oname',1,sysdate);
+    o_pporttypea := o_pporttype(1,1,1);
   END;
 
   PROCEDURE testoutputArray(o_errorcode   OUT NUMBER,
@@ -148,20 +147,20 @@ CREATE OR REPLACE PACKAGE BODY sptest IS
   END;
   PROCEDURE testoutputObjectArray(o_errorcode   OUT NUMBER,
                                   o_errortext   OUT VARCHAR2,
-                                  o_objectarray OUT t_object) AS
+                                  o_objectarray OUT t_pporttype) AS
   BEGIN
-    o_objectarray := t_object();
+    o_objectarray := t_pporttype();
     o_objectarray.extend(2);
-    o_objectarray(1) := o_object(1,1,sysdate);
-    o_objectarray(2) := o_object(2,2,sysdate+1);
+    o_objectarray(1) := o_pporttype(1,1,1);
+    o_objectarray(2) := o_pporttype(2,2,2);
     
   END;
   PROCEDURE testoutputArrayDate(o_errorcode   OUT NUMBER,
                             o_errortext   OUT VARCHAR2,
-                            o_array OUT t_date)
+                            o_array OUT custom.t_date)
                             AS
                             BEGIN
-                            o_array := t_date();
+                            o_array := custom.t_date();
                             o_array.extend(2);
                             o_array(1) := to_Date('01012001 11:01:01','ddmmyyyy hh:mi:ss');
                             o_array(2) := to_Date('02012001 11:01:01','ddmmyyyy hh:mi:ss');
